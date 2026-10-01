@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Report
 from app.schemas import ReportCreate
+import secrets
+
+
 
 app = FastAPI(title="WhistleDrop")
 
@@ -17,7 +20,7 @@ def home():
 def create_report(report: ReportCreate, db: Session = Depends(get_db)):
 
     new_report = Report(
-        case_code="TEST123",
+        case_code=secrets.token_urlsafe(32),
         category=report.category,
         description=report.description,
         evidence_url=str(report.evidence_url) if report.evidence_url else None
