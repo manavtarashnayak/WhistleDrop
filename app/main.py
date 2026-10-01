@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+from app.database import engine
 
-app = FastAPI(tile="WhistelDrop")
+app = FastAPI(title="WhistleDrop")
 
 @app.get("/")
 def home():
-    return{"message":"WhistelDrop API is running"}
+    return {"message": "WhistleDrop API is running"}
