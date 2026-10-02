@@ -97,21 +97,11 @@ def test_moderator_login_wrong_password():
 
 
 
-def test_moderator_reports_with_token():
-    login_response = client.post(
-        "/moderator/login",
-        json={
-            "username": "admin",
-            "password": "Whistle@123"
-        }
-    )
-
-    token = login_response.json()["access_token"]
-
+def test_moderator_reports_with_token(client, moderator_token):
     response = client.get(
         "/moderator/reports",
         headers={
-            "Authorization": f"Bearer {token}"
+            "Authorization": f"Bearer {moderator_token}"
         }
     )
 
@@ -124,33 +114,14 @@ def test_moderator_reports_without_token():
     assert response.status_code == 401
 
 
-def test_change_report_status():
-    report_response = client.post(
-        "/reports",
-        json={
-            "category": "Security",
-            "description": "Testing status change."
-        }
-    )
 
-    assert report_response.status_code == 200
-
-    case_code = report_response.json()["case_code"]
-
-    login_response = client.post(
-        "/moderator/login",
-        json={
-            "username": "admin",
-            "password": "Whistle@123"
-        }
-    )
-
-    token = login_response.json()["access_token"]
+def test_change_report_status(client, moderator_token, report):
+    case_code = report["case_code"]
 
     response = client.patch(
         f"/moderator/reports/{case_code}/status",
         headers={
-            "Authorization": f"Bearer {token}"
+            "Authorization": f"Bearer {moderator_token}"
         },
         json={
             "status": "UNDER_REVIEW",
@@ -162,33 +133,14 @@ def test_change_report_status():
     assert response.json()["status"] == "UNDER_REVIEW"
 
 
-def test_invalid_status():
-    report_response = client.post(
-        "/reports",
-        json={
-            "category": "Security",
-            "description": "Testing invalid status."
-        }
-    )
 
-    assert report_response.status_code == 200
-
-    case_code = report_response.json()["case_code"]
-
-    login_response = client.post(
-        "/moderator/login",
-        json={
-            "username": "admin",
-            "password": "Whistle@123"
-        }
-    )
-
-    token = login_response.json()["access_token"]
+def test_invalid_status(client, moderator_token, report):
+    case_code = report["case_code"]
 
     response = client.patch(
         f"/moderator/reports/{case_code}/status",
         headers={
-            "Authorization": f"Bearer {token}"
+            "Authorization": f"Bearer {moderator_token}"
         },
         json={
             "status": "RANDOM_STATUS",
@@ -221,3 +173,14 @@ def test_change_status_without_token():
     )
 
     assert response.status_code == 401
+
+
+def test_moderator_token(moderator_token):
+    assert moderator_token
+
+
+def test_report_fixture(report):
+    assert "case_code" in report
+
+def test_report_fixture(report):
+    assert "case_code" in report
