@@ -22,3 +22,7 @@ class ReportResponse(BaseModel):
 
 class StatusUpdateCreate(BaseModel):
     message: str
+
+class ModeratorLogin(BaseModel):
+    username: str
+    password: str

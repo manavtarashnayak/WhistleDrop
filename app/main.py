@@ -1,9 +1,16 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+
 from app.database import get_db
-from app.models import Report,StatusUpdate
-from app.schemas import ReportCreate, ReportResponse,StatusUpdateCreate
+from app.models import Report, StatusUpdate, Moderator
+from app.schemas import (
+    ReportCreate,
+    ReportResponse,
+    StatusUpdateCreate,
+    ModeratorLogin
+)
+from app.auth import verify_password, create_access_token
+
 import secrets
 
 
@@ -92,3 +99,37 @@ def add_status_update(
     return {
         "message": "Status update added successfully"
     }
+
+
+@app.post("/moderator/login")
+def moderator_login(
+    login: ModeratorLogin,
+    db: Session = Depends(get_db)
+):
+    moderator = db.query(Moderator).filter(
+        Moderator.username == login.username
+    ).first()
+
+    if not moderator:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid username or password"
+        )
+
+    if not verify_password(
+        login.password,
+        moderator.password_hash
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid username or password"
+        )
+
+    token = create_access_token(moderator.username)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+
