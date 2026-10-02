@@ -7,7 +7,8 @@ from app.schemas import (
     ReportCreate,
     ReportResponse,
     StatusUpdateCreate,
-    ModeratorLogin
+    ModeratorLogin,
+    StatusChange
 )
 from app.auth import verify_password, create_access_token, get_current_moderator
 
@@ -144,3 +145,48 @@ def get_all_reports(
     return reports
 
 
+@app.patch("/moderator/reports/{case_code}/status")
+def change_status(
+    case_code: str,
+    data: StatusChange,
+    db: Session = Depends(get_db),
+    moderator: str = Depends(get_current_moderator)
+):
+    report = db.query(Report).filter(
+        Report.case_code == case_code
+    ).first()
+
+    if not report:
+        raise HTTPException(
+            status_code=404,
+            detail="Invalid case code"
+        )
+
+    allowed_statuses = [
+        "SUBMITTED",
+        "UNDER_REVIEW",
+        "RESOLVED",
+        "DISMISSED"
+    ]
+
+    if data.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid status"
+        )
+
+    report.status = data.status
+
+    new_update = StatusUpdate(
+        report_id=report.id,
+        message=data.message
+    )
+
+    db.add(new_update)
+    db.commit()
+    db.refresh(report)
+
+    return {
+        "message": "Report status updated successfully",
+        "status": report.status
+    }

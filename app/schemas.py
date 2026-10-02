@@ -26,3 +26,7 @@ class StatusUpdateCreate(BaseModel):
 class ModeratorLogin(BaseModel):
     username: str
     password: str
+
+class StatusChange(BaseModel):
+    status: str
+    message: str
