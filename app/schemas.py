@@ -34,5 +34,10 @@ class ModeratorLogin(BaseModel):
     password: str
 
 class StatusChange(BaseModel):
-    status: str
-    message: str
+    status: Literal[
+        "SUBMITTED",
+        "UNDER_REVIEW",
+        "RESOLVED",
+        "DISMISSED"
+    ]
+    message: str = Field(min_length=1)
