@@ -11,7 +11,7 @@ from app.schemas import (
     StatusChange
 )
 from app.auth import verify_password, create_access_token, get_current_moderator
-
+from sqlalchemy.exc import SQLAlchemyError
 import secrets
 
 
@@ -175,16 +175,24 @@ def change_status(
             detail="Invalid status"
         )
 
-    report.status = data.status
+    try:
+        report.status = data.status
 
-    new_update = StatusUpdate(
-        report_id=report.id,
-        message=data.message
-    )
+        new_update = StatusUpdate(
+            report_id=report.id,
+            message=data.message
+        )
 
-    db.add(new_update)
-    db.commit()
-    db.refresh(report)
+        db.add(new_update)
+        db.commit()
+        db.refresh(report)
+    except SQLAlchemyError:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to update report"
+        )
 
     return {
         "message": "Report status updated successfully",
