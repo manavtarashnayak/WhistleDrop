@@ -1,10 +1,16 @@
 from datetime import datetime
-from pydantic import BaseModel, HttpUrl
-
+from pydantic import BaseModel, HttpUrl, Field
+from typing import Literal
 
 class ReportCreate(BaseModel):
-    category: str
-    description: str
+    category: Literal[
+        "Security",
+        "Harassment",
+        "Corruption",
+        "Technical",
+        "Other"
+    ]
+    description: str = Field(min_length=10)
     evidence_url: HttpUrl | None = None
 
 
