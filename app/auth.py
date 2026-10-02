@@ -1,6 +1,8 @@
 from passlib.context import CryptContext
-from jose import jwt
+from jose import jwt, JWTError
 from datetime import datetime, timedelta
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
@@ -9,6 +11,8 @@ pwd_context = CryptContext(
 
 SECRET_KEY = "whistledrop-secret-key"
 ALGORITHM = "HS256"
+
+security = HTTPBearer()
 
 
 def hash_password(password: str):
@@ -28,3 +32,32 @@ def create_access_token(username: str):
     }
 
     return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_current_moderator(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        username = payload.get("sub")
+
+        if username is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token"
+            )
+
+        return username
+
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired token"
+        )

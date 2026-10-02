@@ -9,7 +9,7 @@ from app.schemas import (
     StatusUpdateCreate,
     ModeratorLogin
 )
-from app.auth import verify_password, create_access_token
+from app.auth import verify_password, create_access_token, get_current_moderator
 
 import secrets
 
@@ -74,7 +74,8 @@ def get_report(case_code: str, db: Session = Depends(get_db)):
 def add_status_update(
     case_code: str,
     update: StatusUpdateCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    moderator: str = Depends(get_current_moderator)
 ):
 
     report = db.query(Report).filter(
