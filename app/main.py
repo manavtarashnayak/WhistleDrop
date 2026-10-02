@@ -134,3 +134,13 @@ def moderator_login(
     }
 
 
+@app.get("/moderator/reports")
+def get_all_reports(
+    db: Session = Depends(get_db),
+    moderator: str = Depends(get_current_moderator)
+):
+    reports = db.query(Report).all()
+
+    return reports
+
+
