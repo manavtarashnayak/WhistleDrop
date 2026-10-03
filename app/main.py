@@ -130,7 +130,12 @@ def moderator_login(
     "/moderator/reports",
     tags=["Moderator"],
     summary="Get reports",
-    description="View all reports or filter them by category and status."
+    description="View all reports or filter them by category and status.",
+    responses={
+        200: {"description": "Reports retrieved successfully"},
+        401: {"description": "Invalid or expired token"},
+        422: {"description": "Invalid category or status filter"}
+    }
 )
 def get_all_reports(
     category: Category | None = None,
