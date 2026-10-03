@@ -184,3 +184,57 @@ def test_report_fixture(report):
 
 def test_report_fixture(report):
     assert "case_code" in report
+
+
+def test_filter_by_category(client, moderator_token, report):
+    response = client.get(
+        "/moderator/reports?category=Security",
+        headers={
+            "Authorization": f"Bearer {moderator_token}"
+        }
+    )
+
+    assert response.status_code == 200
+
+    for item in response.json():
+        assert item["category"] == "Security"
+
+
+def test_filter_by_status(client, moderator_token, report):
+    response = client.get(
+        "/moderator/reports?status=SUBMITTED",
+        headers={
+            "Authorization": f"Bearer {moderator_token}"
+        }
+    )
+
+    assert response.status_code == 200
+
+    for item in response.json():
+        assert item["status"] == "SUBMITTED"
+
+
+def test_filter_by_category_and_status(client, moderator_token, report):
+    response = client.get(
+        "/moderator/reports?category=Security&status=SUBMITTED",
+        headers={
+            "Authorization": f"Bearer {moderator_token}"
+        }
+    )
+
+    assert response.status_code == 200
+
+    for item in response.json():
+        assert item["category"] == "Security"
+        assert item["status"] == "SUBMITTED"
+
+
+def test_invalid_category_filter(client, moderator_token):
+    response = client.get(
+        "/moderator/reports?category=Random",
+        headers={
+            "Authorization": f"Bearer {moderator_token}"
+        }
+    )
+
+    assert response.status_code == 422

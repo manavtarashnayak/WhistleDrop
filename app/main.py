@@ -8,7 +8,9 @@ from app.schemas import (
     ReportResponse,
     StatusUpdateCreate,
     ModeratorLogin,
-    StatusChange
+    StatusChange,
+    Category,
+    Status
 )
 from app.auth import verify_password, create_access_token, get_current_moderator
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,7 +18,11 @@ import secrets
 
 
 
-app = FastAPI(title="WhistleDrop")
+app = FastAPI(
+    title="WhistleDrop API",
+    description="Anonymous confidential reporting system",
+    version="1.0.0"
+)
 
 
 @app.get("/")
@@ -24,7 +30,12 @@ def home():
     return {"message": "WhistleDrop API is running"}
 
 
-@app.post("/reports")
+@app.post(
+    "/reports",
+    tags=["Reports"],
+    summary="Create a new report",
+    description="Submit an anonymous confidential report."
+)
 def create_report(report: ReportCreate, db: Session = Depends(get_db)):
 
     new_report = Report(
@@ -44,7 +55,12 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     }
 
 
-@app.get("/reports/{case_code}", response_model=ReportResponse)
+@app.get(
+    "/reports/{case_code}",
+    tags=["Reports"],
+    summary="Get report status",
+    description="Track a submitted report using its case code."
+)
 def get_report(case_code: str, db: Session = Depends(get_db)):
 
     report = db.query(Report).filter(
@@ -71,39 +87,14 @@ def get_report(case_code: str, db: Session = Depends(get_db)):
         ]
     }
 
-@app.post("/reports/{case_code}/updates")
-def add_status_update(
-    case_code: str,
-    update: StatusUpdateCreate,
-    db: Session = Depends(get_db),
-    moderator: str = Depends(get_current_moderator)
-):
-
-    report = db.query(Report).filter(
-        Report.case_code == case_code
-    ).first()
-
-    if not report:
-        raise HTTPException(
-            status_code=404,
-            detail="Invalid case code"
-        )
-
-    new_update = StatusUpdate(
-        report_id=report.id,
-        message=update.message
-    )
-
-    db.add(new_update)
-    db.commit()
-    db.refresh(new_update)
-
-    return {
-        "message": "Status update added successfully"
-    }
 
 
-@app.post("/moderator/login")
+@app.post(
+    "/moderator/login",
+    tags=["Moderator"],
+    summary="Moderator login",
+    description="Authenticate a moderator and receive a JWT access token."
+)
 def moderator_login(
     login: ModeratorLogin,
     db: Session = Depends(get_db)
@@ -135,17 +126,37 @@ def moderator_login(
     }
 
 
-@app.get("/moderator/reports")
+@app.get(
+    "/moderator/reports",
+    tags=["Moderator"],
+    summary="Get reports",
+    description="View all reports or filter them by category and status."
+)
 def get_all_reports(
+    category: Category | None = None,
+    status: Status | None = None,
     db: Session = Depends(get_db),
-    moderator: str = Depends(get_current_moderator)
+    current_moderator: Moderator = Depends(get_current_moderator)
 ):
-    reports = db.query(Report).all()
+    query = db.query(Report)
+
+    if category:
+        query = query.filter(Report.category == category)
+
+    if status:
+        query = query.filter(Report.status == status)
+
+    reports = query.all()
 
     return reports
 
 
-@app.patch("/moderator/reports/{case_code}/status")
+@app.patch(
+    "/moderator/reports/{case_code}/status",
+    tags=["Moderator"],
+    summary="Change report status",
+    description="Update the status of a report. Moderator authentication required."
+)
 def change_status(
     case_code: str,
     data: StatusChange,
@@ -198,3 +209,42 @@ def change_status(
         "message": "Report status updated successfully",
         "status": report.status
     }
+
+
+
+@app.post(
+    "/reports/{case_code}/updates",
+    tags=["Moderator"],
+    summary="Add status update",
+    description="Add an update to a report. Moderator authentication required."
+)
+def add_status_update(
+    case_code: str,
+    update: StatusUpdateCreate,
+    db: Session = Depends(get_db),
+    moderator: str = Depends(get_current_moderator)
+):
+
+    report = db.query(Report).filter(
+        Report.case_code == case_code
+    ).first()
+
+    if not report:
+        raise HTTPException(
+            status_code=404,
+            detail="Invalid case code"
+        )
+
+    new_update = StatusUpdate(
+        report_id=report.id,
+        message=update.message
+    )
+
+    db.add(new_update)
+    db.commit()
+    db.refresh(new_update)
+
+    return {
+        "message": "Status update added successfully"
+    }
+
