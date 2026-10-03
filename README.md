@@ -500,41 +500,25 @@ Expected result:
 
 # 📸 Screenshots
 
-Important screenshots can be added to demonstrate the working project.
-
-Recommended screenshots:
-
 ### Automated Tests
-
-Show the final Pytest result:
 
 ![Pytest - 20 Tests Passed](screenshots/pytest-20-passed.png)
 
 ### Swagger Documentation
 
-Show the `/docs` page containing the public and moderator APIs.
-
 ![Swagger API Documentation](screenshots/swagger.png)
 
 ### JWT Authentication
-
-Show the moderator login and authenticated Swagger request.
 
 ![JWT Authentication](screenshots/jwt-authentication.png)
 
 ### Report Filtering
 
-Show category/status filtering in Swagger.
-
 ![Report Filtering](screenshots/report-filtering.png)
 
 ### Rate Limiting
 
-Show the `429 Too Many Requests` response.
-
 ![Rate Limiting](screenshots/rate-limit.png)
-
-> Do not include real passwords, JWT tokens, database credentials, or sensitive report information in screenshots.
 
 ---
 
@@ -611,10 +595,4 @@ Automated Testing
 20 passed
 ```
 
----
 
-## 📌 Note
-
-WhistleDrop is currently a backend project focused on learning and demonstrating secure API development, database integration, authentication, privacy protections, automated testing, and API documentation.
-
-Before using a system like this for real confidential reporting, additional production security measures, infrastructure hardening, monitoring, data-retention policies, and legal/privacy review would be required.
