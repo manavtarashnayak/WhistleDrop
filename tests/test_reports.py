@@ -2,6 +2,7 @@ from app.schemas import ReportCreate
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.main import rate_limit
 
 client = TestClient(app)
 
@@ -238,3 +239,20 @@ def test_invalid_category_filter(client, moderator_token):
     )
 
     assert response.status_code == 422
+
+
+def test_report_rate_limit(client):
+    rate_limit.clear()
+
+    data = {
+        "category": "Security",
+        "description": "Testing rate limit protection."
+    }
+
+    for _ in range(5):
+        response = client.post("/reports", json=data)
+        assert response.status_code == 200
+
+    response = client.post("/reports", json=data)
+
+    assert response.status_code == 429

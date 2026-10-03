@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -15,7 +15,8 @@ from app.schemas import (
 from app.auth import verify_password, create_access_token, get_current_moderator
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
-
+from fastapi.responses import Response
+import time
 
 
 app = FastAPI(
@@ -24,6 +25,22 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
+rate_limit = {}
+
+MAX_REPORTS = 5
+TIME_WINDOW = 1200
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+
+    return response
 
 @app.get("/")
 def home():
@@ -37,10 +54,34 @@ def home():
     description="Submit an anonymous confidential report.",
     responses={
         200: {"description": "Report created successfully"},
-        422: {"description": "Invalid report data"}
+        422: {"description": "Invalid report data"},
+        429: {"description": "Too many requests"}
     }
 )
-def create_report(report: ReportCreate, db: Session = Depends(get_db)):
+def create_report(
+    request: Request,
+    report: ReportCreate,
+    db: Session = Depends(get_db)
+):
+    client_ip = request.client.host
+
+    current_time = time.time()
+
+    if client_ip not in rate_limit:
+        rate_limit[client_ip] = []
+
+    rate_limit[client_ip] = [
+        t for t in rate_limit[client_ip]
+        if current_time - t < TIME_WINDOW
+    ]
+
+    if len(rate_limit[client_ip]) >= MAX_REPORTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many reports submitted. Please try again later."
+        )
+
+    rate_limit[client_ip].append(current_time)
 
     new_report = Report(
         case_code=secrets.token_urlsafe(12),
@@ -167,7 +208,17 @@ def get_all_reports(
 
     reports = query.all()
 
-    return reports
+    return [
+        {
+            "case_code": report.case_code,
+            "category": report.category,
+            "description": report.description,
+            "evidence_url": report.evidence_url,
+            "status": report.status,
+            "created_at": report.created_at
+        }
+        for report in reports
+    ]
 
 
 @app.patch(
