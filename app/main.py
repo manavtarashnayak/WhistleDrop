@@ -34,7 +34,11 @@ def home():
     "/reports",
     tags=["Reports"],
     summary="Create a new report",
-    description="Submit an anonymous confidential report."
+    description="Submit an anonymous confidential report.",
+    responses={
+        200: {"description": "Report created successfully"},
+        422: {"description": "Invalid report data"}
+    }
 )
 def create_report(report: ReportCreate, db: Session = Depends(get_db)):
 
@@ -59,7 +63,12 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db)):
     "/reports/{case_code}",
     tags=["Reports"],
     summary="Get report status",
-    description="Track a submitted report using its case code."
+    description="Track a submitted report using its case code.",
+    responses={
+        200: {"description": "Report retrieved successfully"},
+        404: {"description": "Report not found"},
+        422: {"description": "Invalid case code"}
+    }
 )
 def get_report(case_code: str, db: Session = Depends(get_db)):
 
@@ -93,7 +102,12 @@ def get_report(case_code: str, db: Session = Depends(get_db)):
     "/moderator/login",
     tags=["Moderator"],
     summary="Moderator login",
-    description="Authenticate a moderator and receive a JWT access token."
+    description="Authenticate a moderator and receive a JWT access token.",
+    responses={
+        200: {"description": "Login successful"},
+        401: {"description": "Invalid username or password"},
+        422: {"description": "Invalid login data"}
+    }
 )
 def moderator_login(
     login: ModeratorLogin,
@@ -160,7 +174,13 @@ def get_all_reports(
     "/moderator/reports/{case_code}/status",
     tags=["Moderator"],
     summary="Change report status",
-    description="Update the status of a report. Moderator authentication required."
+    description="Update the status of a report. Moderator authentication required.",
+    responses={
+        200: {"description": "Report status updated successfully"},
+        401: {"description": "Invalid or expired token"},
+        404: {"description": "Report not found"},
+        422: {"description": "Invalid status or request data"}
+    }
 )
 def change_status(
     case_code: str,
@@ -221,7 +241,13 @@ def change_status(
     "/reports/{case_code}/updates",
     tags=["Moderator"],
     summary="Add status update",
-    description="Add an update to a report. Moderator authentication required."
+    description="Add an update to a report. Moderator authentication required.",
+    responses={
+        200: {"description": "Status update added successfully"},
+        401: {"description": "Invalid or expired token"},
+        404: {"description": "Report not found"},
+        422: {"description": "Invalid request data"}
+    }
 )
 def add_status_update(
     case_code: str,
