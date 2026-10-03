@@ -508,45 +508,31 @@ Recommended screenshots:
 
 Show the final Pytest result:
 
-```text
-20 passed
-```
-
-```markdown
 ![Pytest - 20 Tests Passed](screenshots/pytest-20-passed.png)
-```
 
 ### Swagger Documentation
 
 Show the `/docs` page containing the public and moderator APIs.
 
-```markdown
 ![Swagger API Documentation](screenshots/swagger.png)
-```
 
 ### JWT Authentication
 
 Show the moderator login and authenticated Swagger request.
 
-```markdown
 ![JWT Authentication](screenshots/jwt-authentication.png)
-```
 
 ### Report Filtering
 
 Show category/status filtering in Swagger.
 
-```markdown
 ![Report Filtering](screenshots/report-filtering.png)
-```
 
 ### Rate Limiting
 
 Show the `429 Too Many Requests` response.
 
-```markdown
 ![Rate Limiting](screenshots/rate-limit.png)
-```
 
 > Do not include real passwords, JWT tokens, database credentials, or sensitive report information in screenshots.
 
