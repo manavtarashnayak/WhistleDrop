@@ -2,7 +2,7 @@
 
 > A confidential and anonymous reporting backend that allows users to submit sensitive reports without creating an account, while providing authorized moderators with secure tools to review, filter, and manage reports.
 
----
+-----
 
 ## 📌 Overview
 
