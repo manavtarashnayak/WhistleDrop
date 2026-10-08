@@ -40,15 +40,6 @@ def test_create_report():
         }
     )
 
-def test_create_report():
-    response = client.post(
-        "/reports",
-        json={
-            "category": "Security",
-            "description": "There is a security issue."
-        }
-    )
-
     assert response.status_code == 200
 
 
@@ -179,9 +170,6 @@ def test_change_status_without_token():
 def test_moderator_token(moderator_token):
     assert moderator_token
 
-
-def test_report_fixture(report):
-    assert "case_code" in report
 
 def test_report_fixture(report):
     assert "case_code" in report
